@@ -3,7 +3,7 @@ Lesson 4
 
 ***
 
-### coord trans
+### coord trans 转换某个轴的范围
 Notes:
 
 ```{r Scatterplots}
@@ -65,18 +65,49 @@ head(pf.fc_by_age)
 
 #方式二
 #%%这个符号允许把数据集和函数连接起来，代表对该数据集采用该函数处理
-
-pf %%
-  group_by(age) %%
+pf.fc_by_age <- pf %>%
+  group_by(age) %>%
   summarise(friend_count_mean = mean(friend_count),
           friend_count_median = median(friend_count),
-          n = n())
-
+          n = n()) %>%
+  arrange(age)
+head(pf.fc_by_age)
 
 
 ```
 
+结论：13岁的平均好友数比14岁的低，平均好友数峰值在16到17岁之间
 
+
+### 绘制平均好友数随年龄变化的折线图
+Notes:
+
+```{r Scatterplots}
+p <- ggplot(pf.fc_by_age, aes(x=age, y=friend_count_mean))
+p + geom_line()
+
+```
+
+结论：年轻人有较高的平均好友数，30到60岁的人好友数在一百左右浮动，60多有一个异常值，还有80以上的年龄好友数波动很大，
+
+
+### 将两幅图叠加在一起
+Notes:
+
+```{r Scatterplots}
+#将一个平均的折线图覆盖到散点图上，fun.y指这个函数会被应用到y上
+#将10%分位数点覆盖到散点图上
+ggplot(aes(x=age,y=friend_count),data=pf) +
+  xlim(13,90) + 
+  geom_point(alpha = 1/20,
+             position = position_jitter(h = 0),
+             color = 'orange') +
+  coord_trans(y = 'sqrt') +
+  geom_line(stat = 'summary',fun.y = mean)+
+  geom_line(stat = 'summary',fun.y = quantile, probs = 0.1)
+
+
+```
 
 
 
