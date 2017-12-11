@@ -1,0 +1,82 @@
+Lesson 4
+========================================================
+
+***
+
+### coord trans
+Notes:
+
+```{r Scatterplots}
+pf <- read.csv('pseudo_facebook.tsv',sep='\t')
+library(ggplot2)
+ggplot(aes(x = age, y = friend_count),data = pf) +
+  geom_point(alpha = 1/20) +
+  xlim(13,90)
+
+ggplot(aes(x = age, y = friend_count),data = pf) +
+  geom_point(alpha = 1/20) +
+  xlim(13,90)+
+  coord_trans(y = "sqrt")
+
+ggplot(aes(x = age, y = friend_count),data = pf) +
+  geom_jitter(alpha = 1/20, position = position_jitter(h=0)) +
+  xlim(13,90)+
+  coord_trans(y = "sqrt")
+
+```
+
+### alpha和jitter
+Notes:
+
+```{r Scatterplots}
+
+ggplot(aes(x = age, y = friendships_initiated),data = pf) +
+  geom_point(alpha = 1/20) +
+  xlim(13,90)+
+  coord_trans(y = "sqrt")
+
+```
+
+前面都是直接将两个变量用点画出来，即使做了转化变换或者抖动。
+
+### 条件均值
+Notes:
+  一个变量的均值或者别的统计值随着另一个变量变化的情况
+  比如平均朋友数量随着年龄的变化
+  
+  dplyr允许分割某个数据集，并对某块数据应用函数做转化
+
+```{r Scatterplots}
+install.packages("dplyr")
+library(dplyr)
+
+#方式一
+#给数据集分组
+age_groups <- group_by(pf,age)
+#对分组后的数据集进行总结，将几个特征用变量保存起来 n()函数统计组内记录的个数,对age_groups数据集执行操作
+pf.fc_by_age <- summarise(age_groups,
+          friend_count_mean = mean(friend_count),
+          friend_count_median = median(friend_count),
+          n = n())
+#对该数据集按照age从小到大排列
+pf.fc_by_age <- arrange(pf.fc_by_age,age)
+#显示数据集前几行
+head(pf.fc_by_age)
+
+#方式二
+#%%这个符号允许把数据集和函数连接起来，代表对该数据集采用该函数处理
+
+pf %%
+  group_by(age) %%
+  summarise(friend_count_mean = mean(friend_count),
+          friend_count_median = median(friend_count),
+          n = n())
+
+
+
+```
+
+
+
+
+
