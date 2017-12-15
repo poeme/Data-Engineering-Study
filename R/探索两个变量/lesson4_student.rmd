@@ -97,6 +97,8 @@ Notes:
 ```{r Scatterplots}
 #将一个平均的折线图覆盖到散点图上，fun.y指这个函数会被应用到y上
 #将10%分位数点覆盖到散点图上
+#将90%分位数点覆盖到散点图上
+#将50%分位数点覆盖到散点图上
 ggplot(aes(x=age,y=friend_count),data=pf) +
   xlim(13,90) + 
   geom_point(alpha = 1/20,
@@ -104,10 +106,42 @@ ggplot(aes(x=age,y=friend_count),data=pf) +
              color = 'orange') +
   coord_trans(y = 'sqrt') +
   geom_line(stat = 'summary',fun.y = mean)+
-  geom_line(stat = 'summary',fun.y = quantile, probs = 0.1)
+  geom_line(stat = 'summary',fun.y = quantile, fun.args = list(probs = .1),linetype=2,color='blue')+
+  geom_line(stat = 'summary',fun.y = quantile, fun.args = list(probs = .9),linetype=2,color='blue')+
+  geom_line(stat = 'summary',fun.y = quantile, fun.args = list(probs = .5),color='blue')+
+  coord_cartesian()
+
+```
+
+### 使用?coord_cartesian()来放大局部
+Notes:
+
+```{r Scatterplots}
+#放大了部分图形
+ggplot(aes(x=age,y=friend_count),data=pf) +
+  coord_cartesian(xlim=c(13,70),ylim=c(0,1000))+
+  geom_point(alpha = 1/20,
+             position = position_jitter(h = 0),
+             color = 'orange') +
+  geom_line(stat = 'summary',fun.y = mean)+
+  geom_line(stat = 'summary',fun.y = quantile, fun.args = list(probs = .1),linetype=2,color='blue')+
+  geom_line(stat = 'summary',fun.y = quantile, fun.args = list(probs = .9),linetype=2,color='blue')+
+  geom_line(stat = 'summary',fun.y = quantile, fun.args = list(probs = .5),color='blue')
+
+```
+
+
+### 前面将原始数据和一些汇总数据在一幅图片中展示，来获取一些有用信息，现在通过直方图展示另一些信息
+比如大部分人低估了他们的好友数，那么他们到底低估了多少或者高估了多少呢
+比如多少人完美的猜中了他们的好友数
+或者是多少人高估了百分之10，低估了百分之十
+Notes:
+
+```{r Scatterplots}
 
 
 ```
+
 
 
 
