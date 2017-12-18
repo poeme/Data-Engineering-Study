@@ -135,12 +135,77 @@ ggplot(aes(x=age,y=friend_count),data=pf) +
 比如大部分人低估了他们的好友数，那么他们到底低估了多少或者高估了多少呢
 比如多少人完美的猜中了他们的好友数
 或者是多少人高估了百分之10，低估了百分之十
+尝试用一个数字来表达这种关系的强度（相关系数）
+用r来表示年龄和好友数的线性关系
 Notes:
+
+```{r Scatterplots}
+cor.test(pf$friend_count, pf$age, method = "pearson")
+with(pf,cor.test(age,friend_count,method = "pearson"))
+
+```
+
+结论：0.0274
+这样看来两个变量没有实质性的关系，一般来说，
+只有相关系数大于0.3或者小于-0.3才是有意义的，但是很小
+0.5左右中等相关，大于0.7相关性较大。
+
+
+### 前面看到两个变量相关性不大，但是看图片，好像年长的数据不对，导致相关性不大，因此这里重新使用年龄70岁以下的数据
+Notes: 默认参数有method = "pearson"
+
+```{r Scatterplots}
+with(subset(pf,age<70),cor.test(age,friend_count))
+
+```
+
+
+### 除了相关性的度量，还有单调关系的度量，比如spearman
+Notes: 
+
+```{r Scatterplots}
+with(subset(pf,age<70),cor.test(age,friend_count,method = "spearman"))
+
+```
+这些相关系数是有用的，但是也无法替代散点观察图以及之前做的统计分析，分析相关系数同时观察图形能更深入理解变量之间的关系。
+
+
+
+### 
+Notes: 
+  观察用户分别从客户端和网页上收到的点赞数之间的相关性值
+  为了不看那些outliers值，把x,y都限定只观察95%分位数的范围
+  添加一个平滑器，lm代表线性模型，因此划出一条直线
+
+```{r Scatterplots}
+ggplot(aes(x = www_likes_received, y = likes_received),data = pf)+
+  geom_point() 
+
+ggplot(aes(x = www_likes_received, y = likes_received),data = pf)+
+  geom_point() +
+  xlim(0,quantile(pf$www_likes_received,0.95))+
+  ylim(0,quantile(pf$likes_received,0.95))+
+  geom_smooth(method='lm',color='red')
+
+cor.test(pf$www_likes_received, pf$likes_received, method = "pearson")
+
+```
+
+这里相关性达到0.95，两个变量有很强的正相关
+
+
+
+### 强相关有时候并不是非常好的
+Notes: 很强相关性的变量常常是因为他们其实是同一个东西的量化，比如，用户互动的频率
+  有时候在递归建模的时候，要求变量相互是独立的，如果有两个变量很强相关，那很难决定到底是哪个变量产生这样的结果
+  所以，在分析数据集之前，通常先看变量之间的相关性，这样帮助判断哪些变量不能一起放入模型，以及哪些变量要保留下来。
 
 ```{r Scatterplots}
 
 
 ```
+
+
 
 
 
