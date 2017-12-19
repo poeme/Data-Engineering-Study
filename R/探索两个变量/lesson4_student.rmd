@@ -199,12 +199,60 @@ cor.test(pf$www_likes_received, pf$likes_received, method = "pearson")
 Notes: 很强相关性的变量常常是因为他们其实是同一个东西的量化，比如，用户互动的频率
   有时候在递归建模的时候，要求变量相互是独立的，如果有两个变量很强相关，那很难决定到底是哪个变量产生这样的结果
   所以，在分析数据集之前，通常先看变量之间的相关性，这样帮助判断哪些变量不能一起放入模型，以及哪些变量要保留下来。
+  
+  还要注意，相关系数也有可能有欺骗性因数据此画出图形能更好的理解数据，以及发现深层信息。
+  
+  这里探索mitchell数据集：包括mitchell的土壤温度信息，通过这个数据集了解为什么说相关系数有时候有欺骗性。
+  tempreture vs month
 
 ```{r Scatterplots}
-
+install.packages('alr3')
+library(alr3)
+data(Mitchell)
+?Mitchell
+ggplot(aes(x=Month,y=Temp),data=Mitchell)+
+  geom_point()
+#查看相关性系数，接近于0，这两个变量看起来没有相关性
+cor.test(Mitchell$Month, Mitchell$Temp, method = "pearson")
+#画图形发现接近于正弦曲线变化
+ggplot(aes(x=Month,y=Temp),data=Mitchell)+
+  geom_point()+
+  scale_x_continuous(breaks=seq(0,100,12))
 
 ```
 
+把这个图形拉长，压扁发现接近于正弦曲线，所以相关系数描述的是线性相关性，而类似这样的相关性就没有表现出来
+很显然，月份是有四季的变化的，所以一定要把数据放在具体的背景下理解。
+还有一点是图形比例和标度也很重要。数据可视化，数据的性质可以暗示图形的形状。
+
+
+
+### 
+Notes: 
+
+```{r Scatterplots}
+
+ggplot(aes(x=age,y=friend_count_mean),data=pf.fc_by_age)+
+  geom_line()
+
+
+
+pf$age_with_months <- pf$age + (1 - pf$dob_month / 12) 
+
+month_groups <- group_by(pf,age_with_months)
+#对分组后的数据集进行总结，将几个特征用变量保存起来 n()函数统计组内记录的个数,对age_groups数据集执行操作
+pf.fc_by_month <- summarise(month_groups,
+          friend_count_mean = mean(friend_count),
+          friend_count_median = median(friend_count),
+          n = n())
+#对该数据集按照age从小到大排列
+pf.fc_by_month <- arrange(pf.fc_by_month,age_with_months)
+#显示数据集前几行
+head(pf.fc_by_month)
+ggplot(aes(x=age_with_months,y=friend_count_mean),data=pf.fc_by_month)+
+  geom_line()
+
+```
 
 
 
