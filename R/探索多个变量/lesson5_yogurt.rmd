@@ -1,0 +1,117 @@
+
+
+## start
+
+```{r pressure, echo=FALSE}
+yo <- read.csv('yogurt.csv')
+str(yo)
+yo$id <- factor(yo$id)
+
+```
+
+## 绘制直方图，ggplot只有一个变量，只有x轴时y就是count
+
+```{r pressure, echo=FALSE}
+ggplot(data = yo, aes(x=price))+geom_bar()
+qplot(data=yo, x=price, fill = I('#F79420'))
+qplot(data=yo, x=price, fill = I('#F79420'),binwidth=10)
+#通过直方图我们可以看到价格是离散的，如果采用summary就不容易发现这个特性
+summary(yo)
+#还可以通过查看有多少不同的价格来发现离散特性
+length(unique(yo$price))
+#通过列出所有值来发现离散特性
+table(yo$price)
+```
+
+## 给数据框添加一个变量
+
+```{r pressure, echo=FALSE}
+
+yo <- transform(yo, all.purchases=strawberry+blueberry
+          +pina.colada+plain+mixed.berry)
+
+yo$all.purchases = yo$strawberry+yo$blueberry
+          +yo$pina.colada+yo$plain+yo$mixed.berry
+```
+
+
+## 随时间变化的价格
+
+```{r pressure, echo=FALSE}
+
+ggplot(aes(x=time,y=price),data=yo) +
+  geom_point(alpha = 1/10)
+```
+
+可以看到常见的价格呈现上升的趋势，还可以在周围看到一些较低的价格点，这很有可能是促销或者买家使用优惠券导致价格降低的缘故
+
+
+## 采样观测值
+使用小样本观测值查看细节，比如观察小样本家庭
+这样我们知道进行的是哪种家庭内部和家庭之间的变化
+
+```{r pressure, echo=FALSE}
+#取样的因子
+set.seed(1000)
+#取出16个家庭样本，levels列出所有不同id的家庭
+sample.ids <- sample(levels(yo$id),16)
+
+#%in%代表在在这些id中，按照id分面，即每个id创建一个图，
+#购买价格折线图
+#每次购买记录绘制一个点，点大小按照购买酸奶总量来确定
+ggplot(aes(x=time,y=price),
+       data = subset(yo,id %in% sample.ids))+
+  facet_wrap(~id)+
+  geom_line()+
+  geom_point(aes(size=all.purchases),pch=1)
+#图片里可以看到不同家庭买酸奶价格趋势的变化，以及频率，以及数量的变化，了解消费者行为
+  
+```
+
+
+## 如果要分析的变量非常多呢 plot matrix
+在散点图矩阵中，在每对变量之间有一个散点图网格
+当变量是类别的时候，散点图可能没有什么用，箱线图和直方图就比较有用了
+这里使用pf数据集来学习
+
+```{r pressure, echo=FALSE}
+install.packages('GGally')
+library(GGally)
+#设置主题
+theme_set(theme_minimal(20))
+
+set.seed(1836)
+#只对第2到15个变量感兴趣，相当于纵向subset
+pf_subset <- pf[,c(2:15)]
+names(pf_subset)
+ggpairs(pf_subset[sample.int(nrow(pf_subset),1000),])
+
+```
+
+
+
+
+
+## 基因数据集，热图
+
+```{r pressure, echo=FALSE}
+
+nci <- read.table('nci.tsv')
+colnames(nci) <- c(1:64)
+
+library(reshape2)
+nci.long.samp <- melt(as.matrix(nci[1:200,]))
+head(nci.long.samp)
+
+ggplot(aes(y=gene, x=case,fill=value),
+       data=nci.long.samp)+
+  geom_tile()+
+  scale_fill_gradientn(colours = colorRampPalette(c('blue','red'))(100))
+
+
+```
+
+
+
+
+

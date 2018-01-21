@@ -1,0 +1,153 @@
+
+
+```{r pressure, echo=FALSE}
+library(ggplot2)
+
+
+```
+
+
+## diamond数据集，画出价格和x的关系的散点图
+
+```{r pressure, echo=FALSE}
+ggplot(aes(x=x,y=price),data=diamonds) +
+  geom_point()
+
+```
+
+x=0时有一些异常值
+x大概分布在4到10之间
+随着x增加，价格近似呈指数增长
+
+## 相关性
+
+```{r pressure, echo=FALSE}
+cor.test(diamonds$price, diamonds$z, method = "pearson")
+
+```
+
+
+## 价格与深度的散点图
+
+```{r pressure, echo=FALSE}
+ggplot(aes(x=depth,y=price),data=diamonds) +
+  geom_point()
+
+```
+
+
+
+## 由于散点图里面有很多重叠，所以调整透明度，以便观察
+  透明度设置为1/100,x轴设置2个单位一个刻度
+
+```{r pressure, echo=FALSE}
+ggplot(aes(x=depth,y=price),data=diamonds) +
+  geom_point(alpha = 1/100)+
+  scale_x_continuous(limits=c(56,68),breaks=c(seq(from=56,to=68,by=2)))
+
+```
+
+经观察得到大部分depth在58-64的范围内
+
+
+## 价格与深度相关性
+
+```{r pressure, echo=FALSE}
+cor.test(diamonds$price, diamonds$depth, method = "pearson")
+
+```
+
+
+## 价格与克拉的关系
+  xy轴均只显示99分位数以下的内容，忽略了最大的1%的内容
+
+```{r pressure, echo=FALSE}
+ggplot(aes(x=carat,y=price),data=diamonds) +
+  geom_point() +
+  xlim(0,quantile(diamonds$carat,0.99))+
+  ylim(0,quantile(diamonds$price,0.99))
+```
+
+
+## 价格与体积的关系
+
+```{r pressure, echo=FALSE}
+diamonds$volume <- diamonds$x * diamonds$y * diamonds$z 
+ggplot(aes(x=volume,y=price),data=diamonds) +
+  geom_point() +
+  xlim(0,500)
+```
+
+
+
+## 价格与体积的相关性,排除了volue=0和>=800的体积
+
+```{r pressure, echo=FALSE}
+sub_diamonds <- subset(diamonds, volume>0 & volume <800)
+cor.test(sub_diamonds$price, sub_diamonds$volume, method = "pearson")
+```
+
+
+
+## 价格与体积
+
+```{r pressure, echo=FALSE}
+
+ggplot(aes(x=volume,y=price),data=sub_diamonds) +
+  geom_point(alpha = 1/100)+
+  geom_smooth()
+
+```
+
+
+## 汇总特征值 summary data frame
+
+```{r pressure, echo=FALSE}
+suppressMessages(library(ggplot2))
+suppressMessages(library(dplyr))
+data(diamonds)
+
+diamondsByClarity <- diamonds %>%
+  group_by(clarity) %>%
+  summarise(mean_price = mean(price),
+          median_price = median(price),
+          min_price = min(price),
+          max_price = max(price),
+          n = n()) %>%
+  arrange(clarity)
+
+```
+
+
+
+
+## 汇总柱状图
+
+```{r pressure, echo=FALSE}
+diamonds_by_clarity <- group_by(diamonds, clarity)
+diamonds_mp_by_clarity <- summarise(diamonds_by_clarity, mean_price = mean(price))
+
+diamonds_by_color <- group_by(diamonds, color)
+diamonds_mp_by_color <- summarise(diamonds_by_color, mean_price = mean(price))
+
+#重新p排列透明度
+diamonds_mp_by_clarity$clarity = factor(diamonds_mp_by_clarity$clarity, levels=c("I1", "SI1", "SI2", "VS1", "VS2", "VVS1", "VVS2", "IF"))
+p1 <- ggplot(aes(x=clarity,y=mean_price),data=diamonds_mp_by_clarity)+
+  geom_bar(position="dodge", stat="identity")
+#重新排列颜色
+diamonds_mp_by_color$color = factor(diamonds_mp_by_color$color, levels=c("J","I","H","G","F","E","D"))
+p2 <- ggplot(aes(x=color,y=mean_price),data=diamonds_mp_by_color)+
+  geom_bar(position="dodge", stat="identity")
+library(gridExtra)
+#将两个图片放在一起，排成一列
+grid.arrange(p1,p2,ncol=1)
+```
+
+
+
+
+
+
+
+
+

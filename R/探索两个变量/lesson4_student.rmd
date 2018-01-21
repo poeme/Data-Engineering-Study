@@ -227,7 +227,7 @@ ggplot(aes(x=Month,y=Temp),data=Mitchell)+
 
 
 
-### 
+### 根据年龄转化成月份画图 月均值
 Notes: 
 
 ```{r Scatterplots}
@@ -241,20 +241,69 @@ pf$age_with_months <- pf$age + (1 - pf$dob_month / 12)
 
 month_groups <- group_by(pf,age_with_months)
 #对分组后的数据集进行总结，将几个特征用变量保存起来 n()函数统计组内记录的个数,对age_groups数据集执行操作
-pf.fc_by_month <- summarise(month_groups,
+pf.fc_by_age_months <- summarise(month_groups,
           friend_count_mean = mean(friend_count),
           friend_count_median = median(friend_count),
           n = n())
 #对该数据集按照age从小到大排列
-pf.fc_by_month <- arrange(pf.fc_by_month,age_with_months)
+pf.fc_by_age_months <- arrange(pf.fc_by_age_months,age_with_months)
 #显示数据集前几行
-head(pf.fc_by_month)
-ggplot(aes(x=age_with_months,y=friend_count_mean),data=pf.fc_by_month)+
+head(pf.fc_by_age_months)
+ggplot(aes(x=age_with_months,y=friend_count_mean),data=subset(pf.fc_by_age_months,age_with_months<71))+
   geom_line()
 
 ```
 
 
+### 将按照月份画出的图形和按照年龄画出的图形放在一起对比
+Notes: 
+
+```{r Scatterplots}
+p1 <- ggplot(aes(x=age,y=friend_count_mean),data=subset(pf.fc_by_age,age<71))+
+  geom_line()
+
+p2 <- ggplot(aes(x=age_with_months,y=friend_count_mean),data=subset(pf.fc_by_age_months,age_with_months<71))+
+  geom_line()
+
+p3 <- ggplot(aes(x = round(age/5 )*5,y=friend_count),
+             data = subset(pf,age<71)) +
+  geom_line(stat = 'summary',fun.y = mean)
+
+library(gridExtra)
+#将两个图片放在一起，排成一列
+grid.arrange(p2,p1,p3,ncol=1)
+
+```
+
+显然，在基于月份的图片中，噪声更大，如果我们增加步长，比如，每5年计算一次条件平均，线条将会更加平滑。
+5年计算一次显然丢失了年龄与好友数关系的重要特征。因此，步长的折中是很重要的一个东西，在直方图中也是如此。
+可以使用灵活地统计模型对条件平均的估计进行平滑。geom smoother如下：
+
+
+```{r Scatterplots}
+p1 <- ggplot(aes(x=age,y=friend_count_mean),data=subset(pf.fc_by_age,age<71))+
+  geom_line()+
+  geom_smooth()
+
+p2 <- ggplot(aes(x=age_with_months,y=friend_count_mean),data=subset(pf.fc_by_age_months,age_with_months<71))+
+  geom_line()+
+  geom_smooth()
+
+p3 <- ggplot(aes(x = round(age/5 )*5,y=friend_count),
+             data = subset(pf,age<71)) +
+  geom_line(stat = 'summary',fun.y = mean)
+
+library(gridExtra)
+#将两个图片放在一起，排成一列
+grid.arrange(p2,p1,p3,ncol=1)
+
+```
+
+smoother并没有反映低年龄的非单调关系，高年龄69的峰值也被忽略了，所以使用平滑曲线（低S曲线模型或平滑样条模型）时，如果真实数据的流程与模型本身不太一样时，可能有系统误差。
+这里模型假设了真实的函数是连续平滑的，显然忽略了数据的一些非连续性和异常值。
+
+
+不同的图形可视化方法可能反映了数据的不同侧面，所以没有好坏之说
 
 
 

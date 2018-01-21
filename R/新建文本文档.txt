@@ -1,0 +1,5 @@
+有些变量是离散的，绘制散点图可能会重合，因此添加这个轴的抖动，来更好的观察它的密度
+一般会选择其他的图形
+注意，使用点透明度，以及增加水平的抖动来保证点之间不会过度重合
+
+Think?very?carefully?before you let points?in your?plot represent more than three variables.

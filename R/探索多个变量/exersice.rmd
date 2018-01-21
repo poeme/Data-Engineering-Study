@@ -1,0 +1,120 @@
+
+## 带有分面和颜色的价格直方图
+绘制价格条形图，采用color进行分面 用颜色区分不同的cut
+
+```{r pressure, echo=FALSE}
+library(ggplot2)
+data("diamonds")
+
+  ggplot(diamonds)+
+    facet_wrap(~color)+
+    geom_histogram(aes(x=log(price), fill=cut))
+  
+```
+
+
+
+## 价格与按切工填色的表格
+绘制价格与表格的散点图，用切工代表点的颜色
+
+```{r pressure, echo=FALSE}
+
+  ggplot(diamonds)+
+    geom_point(aes(x=table, y=price,colour=cut))
+  
+```
+
+
+## 典型表值
+
+```{r pressure, echo=FALSE}
+#ideal切工的典型table范围
+summary(subset(diamonds,cut=='Ideal')$table)
+
+summary(subset(diamonds,cut=='Premium')$table)
+```
+
+
+
+
+
+
+## 价格与体积和钻石净度
+绘制价格和体积的散点图，y使用log10变化，体积忽略最高1%的
+
+```{r pressure, echo=FALSE}
+diamonds$volume <- diamonds$x*diamonds$y*diamonds$z
+
+  ggplot(diamonds)+
+    geom_point(aes(x=volume, y=price,colour=clarity))+
+    scale_y_log10()+
+    xlim(0,quantile(diamonds$volume,0.99))
+
+```
+
+
+
+
+## 新建友谊的比例
+很多变量是来自两个或者多个其他变量，比如，
+```{r pressure, echo=FALSE}
+
+pf <- read.csv('pseudo_facebook.tsv',sep='\t')
+
+pf$prop_initiated <- pf$friendships_initiated/pf$friend_count
+```
+
+
+
+## prop_initiated与使用时长
+
+```{r pressure, echo=FALSE}
+pf$year_joined <- floor(2014-pf$tenure/365)
+cuttime=c(2004,2009,2011,2012,2014)
+pf$year_joined.bucket <- cut(pf$year_joined,cuttime)
+
+ggplot(
+  data=subset(pf,friend_count>0 & !is.na(year_joined.bucket))) + 
+  geom_line(aes(x=tenure,y=prop_initiated,colour=year_joined.bucket),stat = 'summary',fun.y = median)
+```
+
+
+## 平滑化prop_initiated与使用时长
+
+```{r pressure, echo=FALSE}
+ggplot(aes(x=tenure,y=prop_initiated),
+  data=subset(pf,friend_count>0 & !is.na(year_joined.bucket))) + 
+  geom_smooth(aes(colour=year_joined.bucket),stat = 'summary',fun.y = median)
+```
+
+
+## 最大组均值prop_initiated
+
+```{r pressure, echo=FALSE}
+
+library(dplyr)
+pf %>% filter(friend_count>0) %>% group_by(year_joined.bucket) %>% summarize_each(funs(mean),prop_initiated)
+
+```
+
+
+## 经过分组分面和填色的价格
+
+```{r pressure, echo=FALSE}
+
+ggplot(data = diamonds,aes(x=cut,y=price/carat)) +
+  geom_point(aes(colour=color))+
+  facet_wrap(~clarity)+
+  scale_color_brewer(type = 'div')
+
+```
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,158 @@
+
+##
+
+```{r pressure, echo=FALSE}
+pf <- read.csv('pseudo_facebook.tsv',sep='\t')
+library(ggplot2)
+```
+
+
+## 三个变量统计绘制
+group by可以传多个变量
+
+```{r pressure, echo=FALSE}
+ggplot(aes(x=gender,y=age),
+       data=subset(pf,!is.na(gender))) +
+  geom_boxplot()+
+  stat_summary(fun.y = mean, geom = 'point', shape=4)
+
+ggplot(aes(x=age,y=friend_count),
+       data=subset(pf,!is.na(gender))) +
+  geom_line(aes(color=gender),stat = 'summary',fun.y = median)
+
+library(dplyr)
+pf.fc_by_age_gender <- pf %>%
+  group_by(age,gender) %>%
+  summarise(friend_count_mean = mean(friend_count),
+          friend_count_median = median(friend_count),
+          n = n()) %>%
+  arrange(age,gender)
+ggplot(aes(x=age, y=friend_count_median),
+       data=subset(pf.fc_by_age_gender,!is.na(gender)))+
+  geom_line(aes(color=gender))
+
+
+pf.fc_by_age_gender <- pf %>%
+  filter(!is.na(gender)) %>%
+  group_by(age,gender) %>%
+  summarise(friend_count_mean = mean(friend_count),
+          friend_count_median = median(friend_count),
+          n = n()) %>%
+  ungroup() %>%
+  arrange(age)
+
+```
+
+
+## 用比例思考
+  思考：女性用户的好友数是男性的多少倍
+  需要重塑数据框
+
+```{r pressure, echo=FALSE}
+install.packages('reshape2')
+library(reshape2)
+pf.fc_by_age_gender.wide <- dcast(pf.fc_by_age_gender,
+                                  age ~ gender,
+                                  value.var = 'friend_count_median')
+head(pf.fc_by_age_gender.wide)
+ggplot(aes(x=age,y=female/male),data=pf.fc_by_age_gender.wide)+
+  geom_line()+
+  geom_hline(yintercept = 1,alpha = 0.3,linetype=2)
+  
+
+```
+
+
+## 再添加一个变量，加入facebook的时间
+
+```{r pressure, echo=FALSE}
+pf$year_joined <- floor(2014-pf$tenure/365)
+
+```
+
+
+
+## 切割一个变量
+  cut将连续或数值变量转换成离散变量
+
+```{r pressure, echo=FALSE}
+summary(pf$year_joined)
+table(pf$year_joined)
+
+cuttime=c(2004,2009,2011,2012,2014)
+pf$year_joined.bucket <- cut(pf$year_joined,cuttime)
+
+```
+
+
+## 将这些变量都绘制在一起
+
+```{r pressure, echo=FALSE}
+
+table(pf$year_joined.bucket, useNA = 'ifany')
+
+ggplot(aes(x=age,y=friend_count,
+           data=subset(pf,!is.na(year_joined.bucket)))) +
+  geom_line(aes(color = year_joined.bucket),stat = 'summary', fun.y = median)
+```
+
+
+
+
+## 绘制总均值
+
+```{r pressure, echo=FALSE}
+ggplot(aes(x=age,y=friend_count,
+           data=subset(pf,!is.na(gender)))) +
+  geom_line(aes(color = gender),stat = 'summary', fun.y = mean)+
+  geom_line(stat = 'summary',fun.y = mean, linetype=2)
+
+```
+
+由于分布规律相似的，因此影响用户数量的应该不止是用户注册时间
+
+
+
+
+
+## 看一下使用期与好友数的比例，看看自用户使用以来，他们每天有多少好友
+```{r pressure, echo=FALSE}
+
+with(subset(pf,tenure>1),summary(friend_count/tenure))
+
+```
+
+
+
+
+## 思考对于不同的组，好友的请求是否相同，
+新用户是否继续进行交友活动，或者说更老的用户开始建立更多友谊
+创建每天建立的友谊与使用时长之间关系的线图
+age tenure friendships initiated year_joined.bucket
+```{r pressure, echo=FALSE}
+ggplot(aes(x=tenure, y=friendships_initiated/tenure),
+       data=subset(pf,tenure>=1))+
+  geom_line(aes(color = year_joined.bucket),stat = "summary",fun.y = mean)
+  
+#这个图直接把所有的点都绘制出来了，所以有很多噪音，接下来对x轴做一些处理，来组合一些值，达到平滑的目的
+ggplot(aes(x=7*round(tenure/7), y=friendships_initiated/tenure),
+       data=subset(pf,tenure>=1))+
+  geom_line(aes(color = year_joined.bucket),stat = "summary",fun.y = mean)
+
+#也可以用geom_smoother达到相同的目的
+ggplot(aes(x=tenure, y=friendships_initiated/tenure),
+       data=subset(pf,tenure>=1))+
+  geom_smooth(aes(color = year_joined.bucket))
+
+
+```
+
+
+
+
+
+
+
+
+
+
